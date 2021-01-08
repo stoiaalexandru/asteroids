@@ -2,6 +2,7 @@
 //1.Model
 let canvas, context, W, H;
 let keys = [];
+let asteroids = [];
 let ship;
 class Ship {
 
@@ -22,7 +23,7 @@ class Ship {
     }
 
     move() {
-        
+
         if (this.movingUp) {
             this.movementY -= this.speed;
         }
@@ -50,10 +51,10 @@ class Ship {
 
         this.x += this.movementX;
         this.y += this.movementY;
-        
+
         //DECELERATION
-         this.movementX*=0.92;
-         this.movementY*=0.92;
+        this.movementX *= 0.92;
+        this.movementY *= 0.92;
 
     }
 
@@ -78,6 +79,49 @@ class Ship {
     }
 }
 
+function getRandomInt(max) {
+    return Math.floor(Math.random() * max);
+}
+
+class Asteroid {
+    constructor() {
+        this.radiusMultiplier = 10;
+        this.size = getRandomInt(4);
+        this.radius = this.radiusMultiplier * this.size;
+        //this.strokeStyle = getComputedStyle();
+        switch (this.size) {
+            case 1: { 
+            this.strokeStyle = "red";
+            break; 
+        } 
+        case 2: { 
+            this.strokeStyle = "yellow";
+            break; 
+        } 
+        case 3: { 
+            this.strokeStyle = "green";
+            break; 
+        }
+         case 4: { 
+            this.strokeStyle = "blue";
+            break; 
+        }
+
+        }
+    }
+
+    move() {
+
+    }
+
+    draw() {
+        context.strokeStyle = this.strokeStyle;
+        context.lineWidth = 1;
+        context.beginPath();
+        context.arc(getRandomInt(W), getRandomInt(H), this.radius, 0, 2 * Math.PI)
+        context.stroke();
+    }
+}
 
 
 // 2.Desenare
@@ -88,7 +132,11 @@ function desenare() {
 
     // b) desenare nava
     ship.draw();
-    
+    for (let i = 0; i < 5; i++) {
+        asteroids[i] = new Asteroid;
+        asteroids[i].draw();
+    }
+
 }
 
 //3. Actualizare model 
@@ -107,8 +155,7 @@ function actualizare() {
 
 }
 
-function render()
-{
+function render() {
     desenare();
     ship.move();
     actualizare();
@@ -119,8 +166,8 @@ document.addEventListener("keydown", (ev) => {
     keys[ev.key] = true;
 })
 
-document.addEventListener("keyup",(ev)=>{
-    keys[ev.key]=false;
+document.addEventListener("keyup", (ev) => {
+    keys[ev.key] = false;
 })
 function aplicatie() {
     //initializare model 
