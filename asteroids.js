@@ -1,29 +1,51 @@
 
 //1.Model
+
+//Numarul de puncte la care se regenereaza o viata
 const NEW_LIFE_LIMIT = 500;
+//Timpul in care nava este invulnerabila(secunde)
 const INVULNERABLE_TIME = 2;
+//Framerate
 const FPS = 60;
 let canvas, context, W, H;
+//Vector in care vom retine toate butoanele care sunt apasate la un moment dat
 let keys = [];
+//Vector in care vom stoca asteroizii
 let asteroids = [];
+//Vector in care vom stoca rachetele
 let rockets = [];
+//Nava
 let ship;
+//Nivelul curent
 let level;
+//Un flag pentru verificarea necesitatii generarii unui nou nivel
 let newLevel;
+//Numarul de vieti ramase
 let lives;
+//Scorul curent
 let score;
+//In momentul in care acest counter ajunge la valoarea lui NEW_LIFE_LIMIT, aceasta valoare va fi scazuta din acesta, iar o viata va fi regenerata
 let newLife;
+//Flag pentru a detecta necesitatea ecranului de sfarsit de joc
 let isGameOver = false;
-let gameRestart= false;
-let orbit=false;
+//Flag pentru a restarta jocul
+let gameRestart = false;
+//Flag pentru obiectul de orbita 
+let orbit = false;
 
+//Functie pentru obtinerea unui numar intreg aleator
+function getRandomInt(max) {
+    return Math.floor(Math.random() * max);
+}
 
 function angleToRadians(angle) {
     return angle / Math.PI * 180;
 }
+//Cea mai mica distanta in grade dintre doua unghiuri
 function angleDifference(angle1, angle2) {
     return angle = 180 - Math.abs(Math.abs(angle1 - angle2) - 180);
 }
+//Verificarea intersectiei a doua cercuri
 function collisionDetection(x1, y1, r1, x2, y2, r2) {
 
     var a;
@@ -40,19 +62,21 @@ function collisionDetection(x1, y1, r1, x2, y2, r2) {
         return false;
     }
 }
-
+//Desenarea scorului
 function drawScore() {
     context.fillStyle = 'white';
     context.font = "23px Calibri"
     context.fillText("Score: " + score.toString(), W - 100, H - 50);
 }
 
+//Desenarea nivelului curent
 function drawLevel() {
     context.fillStyle = 'white';
     context.font = "23px Calibri"
     context.fillText("Level " + level.toString(), W - 50, 25);
 }
 
+//Crearea unui nou nivel
 function createNewLevel() {
     newLevel = true;
     level++;
@@ -66,26 +90,30 @@ function createNewLevel() {
 
 
 }
+
+//Desenarea ecranului de sfarsit de joc
 function drawGameOver() {
     context.fillStyle = 'white';
     context.font = "23px Calibri"
     context.fillText("GAME OVER!", W / 2 - 50, H / 2);
+    context.fillText("Your final score is: " + score.toString(), W / 2 - 50, H / 2 + 30);
 }
-
+//Nava devine invizibila in ecranul de sfarsit de joc
 function gameOver() {
     ship.visible = false;
 }
 
-function restartGame(){
-    ship=new Ship();
-    asteroids=[];
-    rockets=[];
+//Restartarea jocului
+function restartGame() {
+    ship = new Ship();
+    asteroids = [];
+    rockets = [];
     level = 0;
     newLevel = true;
     lives = 3;
     score = 0;
     newLife = 0;
-    isGameOver=false;
+    isGameOver = false;
     createNewLevel(0);
 
 }
@@ -113,9 +141,10 @@ class Ship {
         this.invulnerableTimer = INVULNERABLE_TIME * FPS;
         this.hitboxVisible = false;
     }
-
+    //Functia de miscare
     move() {
 
+        //Verificarea marginilor canvasului si "teleportarea" in partea opusa a acestuia a navei
         if (this.movingUp) {
             this.movementY -= this.speed;
         }
@@ -140,20 +169,21 @@ class Ship {
         if (this.y > H) {
             this.y = this.radius;
         }
-
+        //Miscarea propriuzisa
         this.x += this.movementX;
         this.y += this.movementY;
 
-        //DECELERATION
+        //DECELERARE
         this.movementX *= 0.92;
         this.movementY *= 0.92;
 
     }
-
+    //Rotirea navei
     rotate(direction) {
         this.angle += this.rotationSpeed * direction
     }
 
+    //Desenarea razei de coliziune a navei
     drawHitbox() {
         context.beginPath();
         context.arc(this.x, this.y, this.hitboxRadius, 0, Math.PI * 2);
@@ -162,6 +192,7 @@ class Ship {
         context.stroke();
     }
 
+    //Desenarea navei
     draw() {
         context.strokeStyle = 'white';
         context.lineWidth = 1;
@@ -179,19 +210,16 @@ class Ship {
         context.closePath();
         context.stroke();
 
-        //SHIP TIP
+        //Varful navei
         context.beginPath();
         context.arc(this.tipX, this.tipY, 2, 0, Math.PI * 2);
         context.closePath();
         context.fillStyle = 'red';
         context.fill();
-
-       
-
-
     }
 
 
+    //Desenarea unui triunghi, functie folosita pentru desenarea vietilor(drawLives)
     drawTriangle(x, y, a, colour = 'white') {
         context.strokeStyle = colour;
         context.lineWidth = 2;
@@ -218,7 +246,8 @@ class Ship {
         }
     }
 
-    drawOrbit(){
+    //Desenarea unui obiect care orbiteaza in jurul navei
+    drawOrbit() {
         context.strokeStyle = 'white';
         context.lineWidth = 1;
         context.beginPath();
@@ -227,8 +256,8 @@ class Ship {
         context.beginPath();
         for (let i = 0; i < 3; i++) {
             context.lineTo(
-                this.x - this.radius * Math.cos(vertAngle * i + radians)/(7/3),
-                this.y - this.radius * Math.sin(vertAngle * i + radians)/(1/3)
+                this.x - this.radius * Math.cos(vertAngle * i + radians) / (7 / 3),
+                this.y - this.radius * Math.sin(vertAngle * i + radians) / (1 / 3)
             );
         }
         context.closePath();
@@ -236,7 +265,7 @@ class Ship {
     }
 
 
-
+    //Evenimentul produs de coliziunea navei cu un asteroid
     explode() {
         this.x = W / 2;
         this.y = H / 2;
@@ -247,6 +276,7 @@ class Ship {
         this.invulnerableTimer = INVULNERABLE_TIME * FPS;
     }
 
+    //Efect de "blinking" care semnifica invulnerabilitatea, si ,dupa ce trece timpul (invulnerableTimer), nava devine vulnerabila din nou
     isInvulnerable() {
         if (this.invulnerable && this.invulnerableTimer > 0 && this.invulnerableTimer % 15 === 0) {
             this.invulnerableTimer--;
@@ -256,19 +286,38 @@ class Ship {
             this.invulnerableTimer--;
             this.visible = false;
         }
-        else if(this.invulnerableTimer!=-100) {
+        else if (this.invulnerableTimer != -100) {
             this.invulnerable = false;
             this.visible = true;
         }
     }
 
+    keyListener() {
+        ship.movingDown = (keys["ArrowDown"])
+        ship.movingUp = (keys["ArrowUp"])
+        ship.movingLeft = (keys["ArrowLeft"])
+        ship.movingRight = (keys["ArrowRight"])
+        if (keys["z"] || keys["Z"]) {
+            ship.rotate(-1);
+        }
+        if (keys["c"] || keys["C"]) {
+            ship.rotate(1);
+        }
+        if (keys["x"] || keys["X"]) {
+            if (rockets.length < 3) {
+                rockets.push(new Rocket(ship.angle));
+
+            }
+            keys["x"] = false;
+            keys["X"] = false;
+        }
+
+    }
 
 
 }
 
-function getRandomInt(max) {
-    return Math.floor(Math.random() * max);
-}
+
 
 class Asteroid {
     constructor() {
@@ -283,9 +332,13 @@ class Asteroid {
 
     }
 
+    //Miscarea unui asteroid
     move() {
+        //miscarea propriuzisa
         this.x += Math.cos(angleToRadians(this.angle)) * this.speed
         this.y += Math.sin(angleToRadians(this.angle)) * this.speed
+
+        //Verificarea marginilor canvasului si "teleportarea" in partea opusa a acestuia a asteroidului
         if (this.x < this.radius) {
             this.x = W;
         }
@@ -302,7 +355,7 @@ class Asteroid {
     }
 
     draw() {
-
+        //Schimbarea culorii in functie de dimensiunea asteroidului
         switch (this.size) {
             case 1: {
                 this.strokeStyle = "red";
@@ -322,14 +375,14 @@ class Asteroid {
             }
 
         }
-
+        //Desenarea asteroidului
         context.strokeStyle = this.strokeStyle;
         context.lineWidth = 2;
         context.beginPath();
         context.arc(this.x, this.y, this.radius, 0, 2 * Math.PI)
         context.stroke();
 
-        //ToDo: draw SIZE
+        //Desenarea marimii
         context.fillStyle = this.strokeStyle;
         context.textAlign = 'center';
         context.textBaseline = 'middle';
@@ -337,14 +390,17 @@ class Asteroid {
         context.fillText(this.size.toString(), this.x, this.y);
     }
 
+    //Popularea vectorului asteroids[] cu asteroizi, numarul acestora depinzand de nivelul curent
     static createAsteroids(levelMultiplier) {
         for (let i = asteroids.length; i < 3 * levelMultiplier; i++) {
             let newAsteroid = new Asteroid();
             asteroids[i] = newAsteroid;
-            asteroids[i].draw();
+            //  asteroids[i].draw();
         }
         newLevel = false;
     }
+
+    //Redesenarea asteroizilor (+testarea coliziunilor)
     static redrawAsteroids() {
         for (let i = 0; i < asteroids.length; i++) {
 
@@ -355,29 +411,24 @@ class Asteroid {
             asteroids[i].rocketCollision();
         }
     }
+
+    //Tratarea ciocnirii a doi asteroizi
     static AsteroidCollision() {
         loop1:
         for (let i = 0; i < asteroids.length - 1; i++) {
             for (let j = i + 1; j < asteroids.length; j++) {
                 if (collisionDetection(asteroids[i].x, asteroids[i].y, asteroids[i].radius,
                     asteroids[j].x, asteroids[j].y, asteroids[j].radius)) {
-                    // if (angleDifference(asteroids[i].angle, asteroids[j].angle) > 15) {
                     let aux = asteroids[i].angle;
                     asteroids[i].angle = asteroids[j].angle;
                     asteroids[j].angle = aux;
-                    //}
-                    // else if(asteroids[i].angle>180){
-                    //     asteroids[i].angle-=180;
-                    // }
-                    // else {
-                    //     asteroids[i].angle+=180;
-                    // }
-                    // break loop1;
+                    break loop1;
                 }
             }
         }
     }
 
+    //Eliminarea asteroizilor cu marimea 0 din vectorul asteroids[]
     static clearAsteroidArray() {
         for (let i = 0; i < asteroids.length; i++) {
             if (asteroids[i].size <= 0) {
@@ -385,6 +436,8 @@ class Asteroid {
             }
         }
     }
+
+    //Tratarea ciocnirii unei rachete cu un asteroid
     rocketCollision() {
         for (let i = 0; i < rockets.length; i++) {
             if (collisionDetection(rockets[i].x, rockets[i].y, rockets[i].radius, this.x, this.y, this.radius)) {
@@ -405,7 +458,7 @@ class Asteroid {
     }
 
 
-
+    //Tratarea evenimentului de coliziune intre nava si un asteroid
     shipCollision() {
         if (collisionDetection(this.x, this.y, this.radius, ship.x, ship.y, ship.hitboxRadius)) {
             if (!ship.invulnerable) {
@@ -429,19 +482,20 @@ class Rocket {
         this.movementY = 0;
 
     }
-
+    //Miscarea rachetei
     move() {
         this.x -= Math.cos(angleToRadians(this.angle)) * this.speed;
         this.y -= Math.sin(angleToRadians(this.angle)) * this.speed;
 
 
     }
-
+    //Desenare sub forma de dreptunghi (nu a mai fost folosita ulterior)
     drawAsRectangle() {
         context.fillStyle = 'white';
         context.fillRect(this.x, this.y, this.width, this.height);
     }
 
+    //Desenare sub forma de cerc
     drawAsCircle() {
         context.fillStyle = 'white';
         context.beginPath();
@@ -450,6 +504,7 @@ class Rocket {
         context.fill();
     }
 
+    //Redesenarea rachetelor (si eliminarea lor in cazul in care depasesc marginea canvasului)
     static redrawRockets() {
 
         for (let i = 0; i < rockets.length; i++) {
@@ -466,67 +521,43 @@ class Rocket {
 
 // 2.Desenare
 function desenare() {
-    // a) stergere scena
+    // Stergerea scenei curente
     context.fillStyle = "black";
     context.fillRect(0, 0, W, H);
-    // b) desenare layout
+    // Desenare layout
     ship.drawLives();
     if (!isGameOver) {
         drawScore();
         drawLevel();
 
-        // c) desenare nava
+        // Desenarea navei
         if (ship.visible) {
             ship.draw();
             if (ship.hitboxVisible) {
                 ship.drawHitbox();
             }
-            if(orbit){
+            if (orbit) {
                 ship.drawOrbit();
             }
         }
     }
+    //Desenarea ecranului de final(daca este cazul)
     else {
         drawGameOver();
     }
-    // d) desenare asteroizi
+    // Redesenarea asteroizilor
     Asteroid.redrawAsteroids();
-    // e)redesenare rachete
+    // Redesenarea rachetelor
     Rocket.redrawRockets();
-
-
 }
 
 //3. Actualizare model 
 function actualizare() {
-    ship.movingDown = (keys["ArrowDown"])
-    ship.movingUp = (keys["ArrowUp"])
-    ship.movingLeft = (keys["ArrowLeft"])
-    ship.movingRight = (keys["ArrowRight"])
-    if (keys["z"] || keys["Z"]) {
-        ship.rotate(-1);
-    }
-    if (keys["c"] || keys["C"]) {
-        ship.rotate(1);
-    }
-    if (keys["x"] || keys["X"]) {
-        if (rockets.length < 3) {
-            rockets.push(new Rocket(ship.angle));
-
-        }
-        keys["x"] = false;
-        keys["X"] = false;
-    }
-
-
-}
-
-function render() {
-    if(gameRestart){
+    if (gameRestart) {
         restartGame();
-        gameRestart=false;
+        gameRestart = false;
     }
-    if (asteroids.length === 0) {
+    if (asteroids.length === 0 || newLevel===true) {
         createNewLevel();
     }
     if (lives <= 0) {
@@ -535,7 +566,6 @@ function render() {
 
     desenare();
     ship.isInvulnerable();
-
     ship.move();
     for (let asteroid of asteroids) {
         asteroid.move();
@@ -544,47 +574,49 @@ function render() {
     for (let rocket of rockets) {
         rocket.move();
     }
-    actualizare();
-    requestAnimationFrame(render);
+    ship.keyListener();
+    requestAnimationFrame(actualizare);
+
 }
+
+
 // 4. Tratare evenimente
 document.addEventListener("keydown", (ev) => {
     keys[ev.key] = true;
 })
-
 document.addEventListener("keyup", (ev) => {
     keys[ev.key] = false;
 })
-
-document.getElementById("restartGame").addEventListener("click", () =>{
-    gameRestart=true;
+document.getElementById("restartGame").addEventListener("click", () => {
+    gameRestart = true;
 });
-
-document.getElementById("hitbox").addEventListener("click", () =>{
-    if(ship.hitboxVisible){
-        ship.hitboxVisible=false;
+document.getElementById("hitbox").addEventListener("click", () => {
+    if (ship.hitboxVisible) {
+        ship.hitboxVisible = false;
     }
     else {
-        ship.hitboxVisible=true;
+        ship.hitboxVisible = true;
     }
 });
 document.getElementById("invulnerable").addEventListener("click", function () {
     if (ship.invulnerable) {
         ship.invulnerable = false;
     }
-    else { 
+    else {
         ship.invulnerable = true;
-        ship.invulnerableTimer=-100;
-     }
+        ship.invulnerableTimer = -100;
+    }
 });
-
-document.getElementById("orbit").addEventListener("click", () =>{
-    if(!orbit){
-        orbit=true;
+document.getElementById("orbit").addEventListener("click", () => {
+    if (!orbit) {
+        orbit = true;
     }
     else {
-        orbit=false;
+        orbit = false;
     }
+});
+document.getElementById("increaseLevel").addEventListener("click", () => {
+    newLevel=true;
 });
 
 
@@ -600,8 +632,7 @@ function aplicatie() {
     score = 0;
     newLife = 0;
     ship = new Ship();
-
-    render();
+    actualizare();
 }
 
 
